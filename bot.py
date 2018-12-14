@@ -11,6 +11,24 @@ from io import BytesIO
 import base64
 import json
 import struct
+import re
+import urllib
+
+def is_url(url):
+    regex = re.compile(
+        r'^(?:http|ftp)s?://' # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+        r'localhost|' #localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+        r'(?::\d+)?' # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    return re.match(regex, url) is not None
+
+def is_url_image(url):
+    res = urllib.request.urlopen(url)
+    http_message = res.info()
+    main = http_message["Content-Type"]
+    return main.startswith("image")
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -33,14 +51,16 @@ def help(bot, update):
 
 
 def echo(bot, update):
-    data = {}
-    """Echo the user message."""
-    update.message.reply_text("image is handling...")
-    r = StrictRedis(connection_pool=pool)
-    data["url"] = update.message.text
-    data["chat_id"] = update.message.chat.id
-    message = json.dumps(data)
-    r.rpush('download', message.encode("utf-8"))
+    if is_url(update.message.text):
+        if is_url_image(update.message.text):
+            data = {}
+            """Echo the user message."""
+            update.message.reply_text("image is handling...")
+            r = StrictRedis(connection_pool=pool)
+            data["url"] = update.message.text
+            data["chat_id"] = update.message.chat.id
+            message = json.dumps(data)
+            r.rpush('download', message.encode("utf-8"))
 
 def show(bot, update):
     '''
