@@ -33,7 +33,7 @@ data["predictions"] = []
 
 
 r = StrictRedis(host='localhost', port=6379)
-print("prediction program is listening")
+print("Wait, prediction program is listening")
 while True:
     image = json.loads(r.blpop('image')[1].decode("utf-8"))
     print("chat_id = "+str(image["chat_id"]))
@@ -57,6 +57,7 @@ while True:
         predictions.append((score, labels[str(i)][1]))
        
     predictions.sort(reverse=True)
+    data["predictions"] = []
     for score, label in predictions[:5]:
         data["predictions"].append({"label":label, "score":float(score)})
     data["chat_id"] = image["chat_id"]

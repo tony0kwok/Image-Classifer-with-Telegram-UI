@@ -53,15 +53,13 @@ def show(bot, update):
     update.message.reply_text("image is received")
     '''
     
-    update.message.reply_text("image is receiving")
+    update.message.reply_text("image is handling...")
     photo_file = bot.get_file(update.message.photo[-1].file_id)
     photo_file.download('user_photo.jpg')
     with open('user_photo.jpg', 'rb') as outfile:
         raw_image = outfile.read()
         encoded_image = base64.b64encode(raw_image)
         base64_string = encoded_image.decode('utf-8')
-    update.message.reply_text("file_id is "+str(update.message.photo[-1].file_id))
-    update.message.reply_text("image is received")
 
     data = {}
     r = StrictRedis(connection_pool=pool)
@@ -69,7 +67,6 @@ def show(bot, update):
     data["chat_id"] = update.message.chat.id
     message = json.dumps(data)
     r.rpush('download', message.encode("utf-8"))
-    update.message.reply_text("image is received")
     
 
 def putpd(bot, update):
