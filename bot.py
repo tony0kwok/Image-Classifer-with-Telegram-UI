@@ -33,12 +33,14 @@ def help(bot, update):
 
 
 def echo(bot, update):
+    data = {}
     """Echo the user message."""
     update.message.reply_text(update.message.text)
     update.message.reply_text("The chat id is"+str(update.message.chat.id))
-    bot.send_message(update.message.chat.id,text='Beep!')
     r = StrictRedis(connection_pool=pool)
-    message = update.message.text
+    data["url"] = update.message.text
+    data["chat_id"] = update.message.chat.id
+    message = json.dumps(data)
     r.rpush('download', message.encode("utf-8"))
 
 def putpd(bot, update):
@@ -64,7 +66,7 @@ class sendPredictThread (threading.Thread):
         r = StrictRedis(connection_pool=self.pool)
         while True:
             pd = json.loads(r.blpop('prediction')[1].decode("utf-8"))
-            self.bot.send_message(pd["chat_id"], text='\n'.join(str(label) for label in pd["prediction"]))
+            self.bot.send_message(pd["chat_id"], text='\n'.join(str(label) for label in pd["predictions"]))
         print("Exiting " + self.name)
 
 def main():
