@@ -14,6 +14,9 @@ import struct
 import re
 import urllib
 
+#put your bot token here
+token = "791232441:AAHQVnJGmZG9pCklVc-zZwdm2WkCG9USXdM"
+
 def is_url(url):
     regex = re.compile(
         r'^(?:http|ftp)s?://' # http:// or https://
@@ -119,7 +122,7 @@ class sendPredictThread (threading.Thread):
 def main():
     """Start the bot."""
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater("791232441:AAHQVnJGmZG9pCklVc-zZwdm2WkCG9USXdM")
+    updater = Updater(token)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
