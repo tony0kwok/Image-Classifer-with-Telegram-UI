@@ -25,14 +25,26 @@ def encodeImg(content):
 while True:
     download = json.loads(r.blpop('download')[1].decode("utf-8"))
     print(download)
-    response = requests.get(download["url"])
-    send_image = response.content
-    encoded_image = encodeImg(send_image)
+    try:
+        if download["url"] != "":
+            response = requests.get(download["url"])
+            send_image = response.content
+            encoded_image = encodeImg(send_image)
 
-    base64_string = encoded_image.decode(ENCODING)
+            base64_string = encoded_image.decode(ENCODING)
+    except Exception as e:
+        print(e)
+    try:
+        if download["img_id"] != "":
+            base64_string = download["img_id"]
+    except Exception as e:
+        print(e)
+    try:
+        data["img"] = base64_string
+        data["chat_id"] = download["chat_id"]
+        message = json.dumps(data, indent=2)
 
-    data["img"] = base64_string
-    data["chat_id"] = download["chat_id"]
-    message = json.dumps(data, indent=2)
-
-    r.rpush('image', message.encode("utf-8"))
+        r.rpush('image', message.encode("utf-8"))
+    except Exception as e:
+        raise e
+    

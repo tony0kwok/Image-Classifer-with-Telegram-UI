@@ -35,13 +35,42 @@ def help(bot, update):
 def echo(bot, update):
     data = {}
     """Echo the user message."""
-    update.message.reply_text(update.message.text)
-    update.message.reply_text("The chat id is"+str(update.message.chat.id))
+    update.message.reply_text("image is handling...")
     r = StrictRedis(connection_pool=pool)
     data["url"] = update.message.text
     data["chat_id"] = update.message.chat.id
     message = json.dumps(data)
     r.rpush('download', message.encode("utf-8"))
+
+def show(bot, update):
+    '''
+    data = {}
+    r = StrictRedis(connection_pool=pool)
+    data["img_id"] = update.message.photo[-1].file_id
+    data["chat_id"] = update.message.chat.id
+    message = json.dumps(data)
+    r.rpush('download', message.encode("utf-8"))
+    update.message.reply_text("image is received")
+    '''
+    
+    update.message.reply_text("image is receiving")
+    photo_file = bot.get_file(update.message.photo[-1].file_id)
+    photo_file.download('user_photo.jpg')
+    with open('user_photo.jpg', 'rb') as outfile:
+        raw_image = outfile.read()
+        encoded_image = base64.b64encode(raw_image)
+        base64_string = encoded_image.decode('utf-8')
+    update.message.reply_text("file_id is "+str(update.message.photo[-1].file_id))
+    update.message.reply_text("image is received")
+
+    data = {}
+    r = StrictRedis(connection_pool=pool)
+    data["img_id"] = base64_string
+    data["chat_id"] = update.message.chat.id
+    message = json.dumps(data)
+    r.rpush('download', message.encode("utf-8"))
+    update.message.reply_text("image is received")
+    
 
 def putpd(bot, update):
     r = StrictRedis(connection_pool=pool)
@@ -67,6 +96,7 @@ class sendPredictThread (threading.Thread):
         while True:
             pd = json.loads(r.blpop('prediction')[1].decode("utf-8"))
             self.bot.send_message(pd["chat_id"], text='\n'.join(str(label) for label in pd["predictions"]))
+            pd = {}
         print("Exiting " + self.name)
 
 def main():
@@ -84,6 +114,7 @@ def main():
 
     # on noncommand i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text, echo))
+    dp.add_handler(MessageHandler(Filters.photo, show))
 
     # log all errors
     dp.add_error_handler(error)
